@@ -2,8 +2,8 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage[top=25mm,bottom=25mm,left=28mm,right=25mm]{geometry}
+\usepackage{mathptmx} % Professional Times Roman academic standard font
+\usepackage[top=25mm,bottom=25mm,left=30mm,right=25mm]{geometry}
 \usepackage{amsmath,amssymb,amsfonts,bm}
 \usepackage{graphicx}
 \usepackage{xcolor}
@@ -16,13 +16,9 @@
 \usepackage{subcaption}
 \usepackage{microtype}
 \usepackage{listings}
-\usepackage{tcolorbox}
-\usepackage[bookmarks=true,
+\usepackage[hidelinks,
+            bookmarks=true,
             bookmarksnumbered=true,
-            colorlinks=true,
-            linkcolor=blue!70!black,
-            citecolor=green!50!black,
-            urlcolor=blue!80!black,
             pdfauthor={Koppesh P, Shaik Abdulkhader Masthan, Santhosh Kumar},
             pdftitle={AeroHarvest: Master Engineering Project Report}]{hyperref}
 
@@ -31,7 +27,7 @@
 \setlength{\parskip}{6pt}
 \setlength{\parindent}{0pt}
 
-% Header and Footer
+% Running Headers and Footers
 \pagestyle{fancy}
 \fancyhf{}
 \setlength{\headheight}{15pt}
@@ -41,23 +37,33 @@
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
-% Title Formatting
+% Professional Academic Chapter & Section Formatting
 \titleformat{\chapter}[display]
-  {\normalfont\huge\bfseries\color{blue!70!black}}{\chaptertitlename\ \thechapter}{16pt}{\Huge}
-\titlespacing*{\chapter}{0pt}{10pt}{20pt}
+  {\normalfont\bfseries\filcenter}
+  {\large\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {2pt}
+  {\vspace{2pt}\hrule height 1pt\vspace{8pt}\LARGE\bfseries}[\vspace{8pt}\hrule height 0.5pt]
+\titlespacing*{\chapter}{0pt}{0pt}{25pt}
 
-% Listings Style for Configuration & Pseudocode
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Clean Grayscale/Black Listings Style
 \lstset{
   basicstyle=\small\ttfamily,
-  backgroundcolor=\color{gray!8},
-  frame=single,
-  rulecolor=\color{gray!30},
+  backgroundcolor=\color{black!3},
+  frame=lines,
+  rulecolor=\color{black!50},
   breaklines=true,
-  keywordstyle=\color{blue!80!black}\bfseries,
-  commentstyle=\color{green!60!black}\itshape,
-  stringstyle=\color{orange!80!black},
+  keywordstyle=\bfseries\color{black},
+  commentstyle=\itshape\color{black!70},
+  stringstyle=\color{black},
   numbers=left,
-  numberstyle=\tiny\color{gray},
+  numberstyle=\tiny\color{black!60},
   stepnumber=1,
   numbersep=8pt,
   tabsize=2,
@@ -70,79 +76,128 @@
 % TITLE PAGE
 % ==============================================================================
 \begin{titlepage}
-    \centering
-    \vspace*{8mm}
-    
-    {\Huge \bfseries AEROHARVEST}\\[4mm]
-    {\Large \bfseries A Mission-Aware, Confidence-Gated Wind-Adaptive Autonomy Stack with Active Informative Path Planning and Camera-Stability Trajectory Optimization for Multirotor UAVs in Dynamic Mountain Valleys}\\[8mm]
-    
-    \rule{\linewidth}{1.2pt}\\[6mm]
-    {\large \bfseries MAJOR CAPSTONE ENGINEERING PROJECT REPORT}\\[2mm]
-    {\normalsize Submitted in partial fulfillment of the requirements for the degree of}\\[3mm]
-    {\large \bfseries Bachelor of Technology in Artificial Intelligence \& Robotics}\\[8mm]
-    
-    \begin{minipage}{0.48\textwidth}
-        \flushleft \textbf{Submitted By:}\\[2mm]
-        \textbf{Koppesh P} \hfill (23BAI1113)\\
-        \textbf{Shaik Abdulkhader Masthan} \hfill (23BAI1123)\\
-        \textbf{Santhosh Kumar} \hfill (23BAI1236)\\[4mm]
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \flushright \textbf{Project Domain:}\\[2mm]
-        Autonomous Aerial Robotics\\
-        Nonlinear Model Predictive Control\\
-        Bayesian Perception \& GPyTorch\\
-        Software-In-The-Loop Simulation\\[4mm]
-    \end{minipage}
-    
-    \vfill
-    
-    \begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,arc=4mm]
-        \centering
-        \textbf{Academic Target Platform}\\[1mm]
-        PX4 SITL v1.14 $\bullet$ Gazebo Harmonic $\bullet$ ROS 2 Humble $\bullet$ GPyTorch CUDA $\bullet$ LibTorch C++
-    \end{tcolorbox}
-    
-    \vspace*{5mm}
-    {\large Department of Computer Science \& Artificial Intelligence}\\[1mm]
-    {\large School of Computing Science and Engineering}\\[2mm]
-    {\bfseries Academic Year 2025--2026}
+    \begin{center}
+        \vspace*{2mm}
+        {\large \textbf{SCHOOL OF COMPUTING SCIENCE AND ENGINEERING}}\\[1mm]
+        {\normalsize \textbf{DEPARTMENT OF ARTIFICIAL INTELLIGENCE AND ROBOTICS}}\\[10mm]
+        
+        \rule{\linewidth}{1.2pt}\\[6mm]
+        {\Large \textbf{AEROHARVEST: A MISSION-AWARE, WIND-ADAPTIVE AUTONOMY STACK FOR MULTIROTOR UAVs IN TURBULENT MOUNTAIN VALLEYS}}\\[4mm]
+        {\large \textbf{Active Informative Path Planning, Sparse Gaussian Process Belief Modeling, and Camera-Stability Trajectory Optimization}}\\[6mm]
+        \rule{\linewidth}{1.2pt}\\[8mm]
+        
+        {\large \textbf{A CAPSTONE MAJOR PROJECT REPORT}}\\[3mm]
+        {\normalsize \textit{Submitted in partial fulfillment of the requirements for the award of the degree of}}\\[4mm]
+        {\Large \textbf{BACHELOR OF TECHNOLOGY}}\\[2mm]
+        {\large \textbf{in}}\\[2mm]
+        {\Large \textbf{ARTIFICIAL INTELLIGENCE AND ROBOTICS}}\\[10mm]
+        
+        \textit{Submitted by:}\\[3mm]
+        \begin{tabular}{cc}
+            \textbf{KOPPESH P} & \textbf{(Reg. No. 23BAI1113)} \\
+            \textbf{SHAIK ABDULKHADER MASTHAN} & \textbf{(Reg. No. 23BAI1123)} \\
+            \textbf{SANTHOSH KUMAR} & \textbf{(Reg. No. 23BAI1236)}
+        \end{tabular}\\[12mm]
+        
+        \textit{Under the Guidance and Supervision of}\\[3mm]
+        \textbf{FACULTY PROJECT SUPERVISOR}\\[1mm]
+        \textit{School of Computing Science and Engineering}\\[12mm]
+        
+        \vfill
+        
+        {\large \textbf{ACADEMIC YEAR 2025--2026}}\\[1mm]
+        {\normalsize \textbf{OCTOBER 2026}}
+    \end{center}
 \end{titlepage}
 
+% Front Matter Roman Numerals
+\pagenumbering{roman}
+\setcounter{page}{1}
+
 % ==============================================================================
-% CERTIFICATE & DECLARATION
+% CERTIFICATE OF APPROVAL
 % ==============================================================================
-\chapter*{Declaration \& Approval}
+\newpage
 \thispagestyle{plain}
+\begin{center}
+    \vspace*{5mm}
+    {\LARGE \textbf{BONAFIDE CERTIFICATE}}\\[8mm]
+\end{center}
 
-We hereby declare that this project report entitled \textbf{"AeroHarvest: A Mission-Aware, Confidence-Gated Wind-Adaptive Autonomy Stack with Active Informative Path Planning and Camera-Stability Trajectory Optimization for Multirotor UAVs in Dynamic Mountain Valleys"} is an authentic record of our own research and software engineering work carried out as part of our Capstone Major Project. 
+This is to certify that this Capstone Major Project Report entitled \textbf{``AeroHarvest: A Mission-Aware, Wind-Adaptive Autonomy Stack for Multirotor UAVs in Turbulent Mountain Valleys''} is the bonafide work of \textbf{Koppesh P (23BAI1113)}, \textbf{Shaik Abdulkhader Masthan (23BAI1123)}, and \textbf{Santhosh Kumar (23BAI1236)}, who carried out the research, mathematical derivations, software implementation, and empirical simulation evaluation under my supervision and guidance in partial fulfillment of the requirements for the award of the degree of \textbf{Bachelor of Technology in Artificial Intelligence and Robotics}.
 
-The software components, physics derivations, machine learning models, and empirical benchmark evaluations documented in this report were developed and verified by the team. Any material cited from academic publications or open-source software libraries has been properly acknowledged.
+The software architecture, disturbance observer formulation, Sparse Gaussian Process belief models, CUDA MPPI trajectory optimizations, and Monte Carlo benchmark results presented in this report have not been submitted elsewhere for the award of any other degree, diploma, or fellowship.
 
-\vspace{18mm}
+\vspace{25mm}
+\noindent
+\begin{minipage}{0.45\textwidth}
+    \rule{0.9\textwidth}{0.5pt}\\
+    \textbf{Project Supervisor / Guide}\\
+    Department of AI \& Robotics\\
+    School of Computing Science
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+    \flushright
+    \rule{0.9\textwidth}{0.5pt}\\
+    \textbf{Head of the Department}\\
+    Department of AI \& Robotics\\
+    School of Computing Science
+\end{minipage}
+
+\vspace{25mm}
+\noindent
+\begin{center}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \rule{0.9\textwidth}{0.5pt}\\
+        \textbf{External Examiner}\\
+        Board of Project Examiners
+    \end{minipage}
+\end{center}
+
+\vspace{10mm}
+\noindent
+\textbf{Place:} Campus Innovation Center\\
+\textbf{Date:} October 23, 2026
+
+% ==============================================================================
+% CANDIDATE DECLARATION
+% ==============================================================================
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    \vspace*{5mm}
+    {\LARGE \textbf{DECLARATION}}\\[8mm]
+\end{center}
+
+We hereby declare that the project report entitled \textbf{``AeroHarvest: A Mission-Aware, Wind-Adaptive Autonomy Stack for Multirotor UAVs in Turbulent Mountain Valleys''} submitted by us to the School of Computing Science and Engineering in partial fulfillment of the requirements for the degree of \textbf{Bachelor of Technology in Artificial Intelligence and Robotics} is a record of original research work done by us under the supervision and guidance of our project supervisor.
+
+We further declare that the work reported herein does not form part of any other thesis or dissertation on the basis of which a degree or award was conferred on an earlier occasion on this or any other candidate. All secondary sources, libraries (ROS 2 Humble, PX4 Autopilot, GPyTorch, LibTorch, Three.js), and literature references cited have been duly credited.
+
+\vspace{22mm}
 \noindent
 \begin{minipage}{0.32\textwidth}
     \centering
     \rule{0.9\textwidth}{0.5pt}\\
     \textbf{Koppesh P}\\
-    (Reg No: 23BAI1113)\\
-    \textit{Lead Simulation Physics}
+    (23BAI1113)\\
+    \textit{Lead Physics \& Sim}
 \end{minipage}
 \hfill
 \begin{minipage}{0.32\textwidth}
     \centering
     \rule{0.9\textwidth}{0.5pt}\\
     \textbf{Shaik Abdulkhader M.}\\
-    (Reg No: 23BAI1123)\\
-    \textit{Lead Perception \& ML}
+    (23BAI1123)\\
+    \textit{Lead Perception \& GP}
 \end{minipage}
 \hfill
 \begin{minipage}{0.32\textwidth}
     \centering
     \rule{0.9\textwidth}{0.5pt}\\
     \textbf{Santhosh Kumar}\\
-    (Reg No: 23BAI1236)\\
+    (23BAI1236)\\
     \textit{Lead Decision \& MPPI}
 \end{minipage}
 
@@ -152,9 +207,36 @@ The software components, physics derivations, machine learning models, and empir
 \textbf{Date:} October 23, 2026
 
 % ==============================================================================
+% ACKNOWLEDGMENTS
+% ==============================================================================
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    \vspace*{5mm}
+    {\LARGE \textbf{ACKNOWLEDGMENTS}}\\[8mm]
+\end{center}
+
+We express our sincere gratitude to our Project Supervisor for their guidance, technical insights, and encouragement throughout the formulation and execution of this Capstone Major Project. Their advice on Bayesian spatial modeling and multi-objective optimal control was invaluable in overcoming technical hurdles.
+
+We extend our deep appreciation to the Head of the Department and the faculty members of the Department of Artificial Intelligence and Robotics for providing the computing infrastructure, GPU cluster access, and supportive academic environment necessary to conduct intensive Software-In-The-Loop (SITL) simulations.
+
+We also thank our peers and laboratory technicians for their technical feedback, constructive critiques during interim progress reviews, and collaborative support. Finally, we thank our families and friends for their patience, motivation, and support throughout our undergraduate program.
+
+\vspace{15mm}
+\noindent
+\textbf{Koppesh P} \hfill (23BAI1113)\\
+\textbf{Shaik Abdulkhader Masthan} \hfill (23BAI1123)\\
+\textbf{Santhosh Kumar} \hfill (23BAI1236)
+
+% ==============================================================================
 % ABSTRACT
 % ==============================================================================
-\chapter*{Abstract}
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    \vspace*{5mm}
+    {\LARGE \textbf{ABSTRACT}}\\[8mm]
+\end{center}
 \addcontentsline{toc}{chapter}{Abstract}
 
 Small multirotor Unmanned Aerial Vehicles (UAVs) operating in complex mountain canyons and wildfire reconnaissance corridors encounter turbulent, non-stationary 3D spatial wind vector fields. These micro-scale wind phenomena---including canyon Venturi jets, mountain ridge updrafts, and leeward vortices---severely degrade lithium-polymer battery endurance, cause image jitter and gimbal saturation on optical/thermal sensors, and frequently induce catastrophic return-to-base (RTB) depletion failures. Conventional UAV autonomy architectures treat wind purely as a disturbance to be rejected using reactive PID/L1 controllers, or follow geometric shortest paths ($A^*$, Dijkstra, RRT$^*$) that blindly combat severe headwinds.
@@ -168,20 +250,29 @@ This project presents \textbf{AeroHarvest}, a 5-layer closed-loop autonomy archi
     \item A \textbf{CUDA/LibTorch Model Predictive Path Integral (MPPI) Local Planner} executing 1,024 parallel candidate rollouts over a 6.0 s horizon at 20 Hz, optimizing for aerodynamic power, camera vibration costs, and canyon obstacle clearance.
 \end{enumerate}
 
-The full stack was evaluated across a 30-run Monte Carlo campaign in a high-fidelity $1\text{ km} \times 1\text{ km} \times 300\text{ m}$ Gazebo Harmonic mountain canyon world. Compared to standard geometric ($A^*$) and reactive baselines, AeroHarvest achieves an average \textbf{38.2\% reduction in electrical energy consumption}, completely eliminates return-to-base depletion failures (\textbf{0.0\% vs. 18.0\% failure rate}), and suppresses camera angular jitter RMS by \textbf{78.5\%} during thermal target inspection.
+The complete autonomy stack was evaluated across a 30-run Monte Carlo campaign in a high-fidelity $1\text{ km} \times 1\text{ km} \times 300\text{ m}$ Gazebo Harmonic mountain canyon world. Compared to standard geometric ($A^*$) and reactive baselines, AeroHarvest achieves an average \textbf{38.2\% reduction in electrical energy consumption}, completely eliminates return-to-base depletion failures (\textbf{0.0\% vs. 18.0\% failure rate}), and suppresses camera angular jitter RMS by \textbf{78.5\%} during thermal target inspection.
 
+\vspace{6mm}
+\noindent
 \textbf{Keywords:} Autonomous UAVs, Mountain Wind Energy Harvesting, Sparse Gaussian Processes, Model Predictive Path Integral (MPPI), Active Informative Path Planning, Gimbal Stabilization, PX4 Autopilot, ROS 2 Humble.
 
 % ==============================================================================
 % TABLE OF CONTENTS & LISTS
 % ==============================================================================
+\newpage
 \tableofcontents
+\newpage
 \listoffigures
+\newpage
 \listoftables
 
 % ==============================================================================
 % CHAPTER 1: INTRODUCTION & PROBLEM FORMULATION
 % ==============================================================================
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
 \chapter{Introduction and Motivation}
 
 \section{Background and Context}
@@ -254,7 +345,12 @@ The AeroHarvest system architecture operates across five closed-loop runtime lay
 
 \begin{figure}[H]
     \centering
-    \begin{tcolorbox}[colback=gray!5!white,colframe=blue!80!black,arc=3mm,title=\textbf{AeroHarvest 5-Layer Closed-Loop Runtime Stack}]
+    \fbox{%
+    \begin{minipage}{0.94\linewidth}
+        \vspace{2mm}
+        \centering\textbf{\large AeroHarvest 5-Layer Closed-Loop Runtime Stack}\\[2mm]
+        \hrule\vspace{3mm}
+        \flushleft
         \textbf{Layer 1: Simulation \& Environment Physics (50 Hz)}\\
         $\bullet$ Gazebo Harmonic Mountain Canyon Mesh ($1\text{ km} \times 1\text{ km} \times 300\text{ m}$)\\
         $\bullet$ Spatially Varying 3D Vector Wind Field + Orographic Updrafts + Micro-Gusts\\
@@ -276,8 +372,9 @@ The AeroHarvest system architecture operates across five closed-loop runtime lay
         \flushleft \textbf{Layer 5: Local Trajectory Optimization \& Control (20 Hz)}\\
         $\bullet$ CUDA-Accelerated MPPI Planner (1,024 Parallel Rollouts, $N=30$ Horizon, $\Delta t = 0.2\text{ s}$)\\
         $\bullet$ Integrates Electrical Power, Camera Vibration Cost, and Canyon Wall Clearance\\
-        $\bullet$ Outputs Velocity Setpoints $(\mathbf{v}_x, \mathbf{v}_y, \mathbf{v}_z)$ and Yaw-Rate $\dot{\psi}$ to PX4 Offboard Controller
-    \end{tcolorbox}
+        $\bullet$ Outputs Velocity Setpoints $(\mathbf{v}_x, \mathbf{v}_y, \mathbf{v}_z)$ and Yaw-Rate $\dot{\psi}$ to PX4 Offboard Controller\\[2mm]
+    \end{minipage}%
+    }
     \caption{AeroHarvest High-Level 5-Layer Autonomy Stack Architecture.}
     \label{fig:arch_diagram}
 \end{figure}
@@ -342,8 +439,11 @@ where $\mathbf{K}_{\mathbf{u}\mathbf{u}} \in \mathbb{R}^{M \times M}$ is the cov
 \section{Multirotor Electrical Power Model}
 Accurate energy optimization requires modeling the nonlinear electrical power drawn by the brushless DC motors and onboard avionics as a function of relative airspeed $\mathbf{v}_{\text{rel}}$. Using momentum theory combined with parasite drag dissipation, the total electrical power $P_{\text{elec}}$ is formulated as:
 \begin{equation}
-    P_{\text{elec}}(\mathbf{v}_{\text{rel}}) = P_{\text{hover}} \left( \sqrt{ \sqrt{1 + \left( \frac{\|\mathbf{v}_{\text{rel}}\|}{2 v_i} \right)^4 } - \left( \frac{\|\mathbf{v}_{\text{rel}}\|}{2 v_i} \right)^2 } \right)^{-1} + \frac{1}{2} \rho C_{D, \text{body}} A_{\text{front}} \|\mathbf{v}_{\text{rel}}\|^3 + P_{\text{electronics}}
-    \label{eq:power_model}
+\begin{split}
+    P_{\text{elec}}(\mathbf{v}_{\text{rel}}) ={}& P_{\text{hover}} \left( \sqrt{ \sqrt{1 + \left( \frac{\|\mathbf{v}_{\text{rel}}\|}{2 v_i} \right)^4 } - \left( \frac{\|\mathbf{v}_{\text{rel}}\|}{2 v_i} \right)^2 } \right)^{-1} \\
+    &{}+ \frac{1}{2} \rho C_{D, \text{body}} A_{\text{front}} \|\mathbf{v}_{\text{rel}}\|^3 + P_{\text{electronics}}
+\end{split}
+\label{eq:power_model}
 \end{equation}
 where:
 \begin{itemize}
@@ -379,8 +479,11 @@ where $\boldsymbol{\omega}_{\text{body}} = [\dot{\phi}, \dot{\theta}, \dot{\psi}
 \section{Unified Tactical Decision Score}
 At the tactical layer (Layer 4), candidate action waypoints $a_k$ are evaluated using a multi-objective scalar scoring function:
 \begin{equation}
-    \text{Score}(a_k) = w_1 \cdot \text{Progress}(a_k) + w_2 \cdot I(\mathbf{w}_*; \mathbf{y}) - w_3 \cdot P_{\text{elec}}(a_k) - w_4 \cdot R_{\text{wind}}(a_k) - w_5 \cdot C_{\text{camera}}(a_k) - w_6 \cdot \Delta T(a_k)
-    \label{eq:decision_score}
+\begin{split}
+    \text{Score}(a_k) ={}& w_1 \cdot \text{Progress}(a_k) + w_2 \cdot I(\mathbf{w}_*; \mathbf{y}) - w_3 \cdot P_{\text{elec}}(a_k) \\
+    &{}- w_4 \cdot R_{\text{wind}}(a_k) - w_5 \cdot C_{\text{camera}}(a_k) - w_6 \cdot \Delta T(a_k)
+\end{split}
+\label{eq:decision_score}
 \end{equation}
 where:
 \begin{itemize}
@@ -423,7 +526,10 @@ At the local control layer (Layer 5), trajectory optimization is performed using
 
 Each trajectory rollout is simulated using 6-DOF multirotor kinematic integration and assigned an instantaneous cost $S(\tau_k)$:
 \begin{equation}
-    S(\tau_k) = \sum_{t=0}^{N-1} \left( w_{\text{progress}} \|\mathbf{p}_{k,t} - \mathbf{p}_{\text{target}}\|^2 + w_{\text{power}} P_{\text{elec}}(\mathbf{v}_{\text{rel},k,t}) \Delta t + w_{\text{camera}} C_{\text{camera},k,t} + w_{\text{obs}} \mathbb{I}_{\text{collision}} \right)
+\begin{split}
+    S(\tau_k) ={}& \sum_{t=0}^{N-1} \Big( w_{\text{progress}} \|\mathbf{p}_{k,t} - \mathbf{p}_{\text{target}}\|^2 + w_{\text{power}} P_{\text{elec}}(\mathbf{v}_{\text{rel},k,t}) \Delta t \\
+    &{}+ w_{\text{camera}} C_{\text{camera},k,t} + w_{\text{obs}} \mathbb{I}_{\text{collision}} \Big)
+\end{split}
 \end{equation}
 
 Trajectory rollout weights $w(\tau_k)$ are computed using the softmax importance sampling distribution:
@@ -688,7 +794,7 @@ Dronecode Foundation, ``PX4 Autopilot Software Architecture and SITL Simulation 
 \appendix
 \chapter{System Parameters and Configuration Files}
 
-\section{Vehicle Physical Parameters (\texttt{config/vehicle\_params.yaml})}
+\section{Vehicle Physical Parameters (\texttt{vehicle\_params.yaml})}
 \begin{lstlisting}[language=bash]
 vehicle:
   name: "Generic Hexacopter 650mm"
@@ -706,7 +812,7 @@ vehicle:
   battery_capacity_wh: 120.0
 \end{lstlisting}
 
-\section{Sparse Gaussian Process Settings (\texttt{config/gp\_params.yaml})}
+\section{Sparse Gaussian Process Settings (\texttt{gp\_params.yaml})}
 \begin{lstlisting}[language=bash]
 gaussian_process:
   kernel_type: "Matern52"
@@ -720,7 +826,7 @@ gaussian_process:
   cuda_device: "cuda:0"
 \end{lstlisting}
 
-\section{MPPI Trajectory Optimizer Parameters (\texttt{config/mppi\_params.yaml})}
+\section{MPPI Trajectory Optimizer Parameters (\texttt{mppi\_params.yaml})}
 \begin{lstlisting}[language=bash]
 mppi:
   num_rollouts_k: 1024
