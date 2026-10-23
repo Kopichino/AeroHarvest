@@ -1,0 +1,31 @@
+mppi:
+  num_rollouts_k: 1024
+  horizon_steps_n: 30
+  dt: 0.2 # 30 * 0.2 = 6.0 s horizon
+  temperature_lambda: 0.5
+  
+  control_noise_std:
+    vx: 1.2
+    vy: 1.2
+    vz: 0.8
+    yaw_rate: 0.3
+    
+  weights:
+    w_progress: 15.0
+    w_energy: 0.04
+    w_camera_jitter: 8.0
+    w_wind_hazard: 12.0
+    w_obstacle_clearance: 50.0
+    w_control_effort: 0.1
+
+camera_cost:
+  alpha_1_angular_rate: 10.0
+  alpha_2_tilt_exceedance: 50.0
+  alpha_3_gust_derivative: 2.0
+  tilt_threshold_nominal_deg: 15.0
+  tilt_threshold_stable_deg: 12.0
+
+battery_reserve:
+  beta_uncertainty_inflation: 0.08
+  nominal_return_energy_wh: 14.0
+  nominal_cruise_speed_m_s: 8.0

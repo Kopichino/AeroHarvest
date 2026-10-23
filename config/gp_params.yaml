@@ -1,0 +1,12 @@
+gaussian_process:
+  kernel_type: "Matern52"
+  spatial_dimension: 3
+  lengthscale_m: 40.0
+  signal_variance_sigma_f2: 2.0
+  observation_noise_sigma_n2: 0.04
+  num_inducing_points: 128
+  sliding_window_buffer_size: 500
+  grid_resolution_m: 10.0
+  uncertainty_probe_threshold_m2_s2: 0.8
+  nominal_uncertainty_threshold_m2_s2: 0.2
+  device: "cuda_if_available" # auto-detects CUDA else CPU

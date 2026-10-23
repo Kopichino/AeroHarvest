@@ -1,0 +1,29 @@
+vehicle:
+  name: "Generic Hexacopter 650mm"
+  type: "multirotor_hexacopter"
+  mass_kg: 2.4
+  gravity: 9.80665
+  num_rotors: 6
+  rotor_diameter_m: 0.28
+  total_rotor_area_m2: 0.3695 # 6 * pi * (0.14)^2
+  air_density_kg_m3: 1.225
+  drag_coefficient_cd: 0.45
+  projected_frontal_area_m2: 0.12
+  
+power:
+  p_hover_w: 380.0
+  v_induced_m_s: 5.2
+  p_electronics_w: 25.0
+  battery_capacity_wh: 120.0
+  nominal_voltage_v: 22.2 # 6S LiPo
+  initial_battery_percentage: 100.0
+
+limits:
+  max_velocity_xy_m_s: 14.0
+  max_velocity_z_up_m_s: 4.0
+  max_velocity_z_down_m_s: 3.0
+  max_tilt_angle_nominal_deg: 25.0
+  max_tilt_angle_stable_deg: 12.0
+  max_angular_rate_nominal_rad_s: 0.8
+  max_angular_rate_stable_rad_s: 0.1
+  max_wind_hazard_limit_m_s: 12.0

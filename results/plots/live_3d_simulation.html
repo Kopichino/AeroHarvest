@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroHarvest - 3D Autonomous Drone Simulator & Eagle View</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #040810;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    
+    /* Top Bar HUD */
+    .top-bar {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .brand-card {
+      background: rgba(8, 14, 24, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 12px 22px;
+      pointer-events: auto;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.65), 0 0 15px rgba(56, 189, 248, 0.12);
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #38ef7d 0%, #38bdf8 55%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-sub {
+      font-size: 0.76rem;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    /* Mode Pill Badge */
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: 24px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(56, 239, 125, 0.35);
+      transition: all 0.3s ease;
+      background: rgba(46, 204, 113, 0.15);
+      border: 1.5px solid #2ecc71;
+      color: #2ecc71;
+    }
+    .mode-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulseDot 1.4s infinite alternate;
+    }
+    @keyframes pulseDot {
+      0% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1.0; transform: scale(1.2); }
+    }
+
+    /* Telemetry HUD Panel (Left) */
+    .telemetry-panel {
+      position: absolute;
+      left: 20px;
+      top: 96px;
+      width: 280px;
+      background: rgba(8, 14, 24, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 16px;
+      z-index: 10;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+    }
+    .hud-header {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 8px;
+    }
+    .hud-badge-live {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid #22c55e;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .hud-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .hud-label {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .hud-value {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 7px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+      width: 98%;
+      transition: width 0.25s ease, background 0.3s;
+    }
+
+    /* Right Quick Actions / Layer Toggles */
+    .layers-panel {
+      position: absolute;
+      right: 20px;
+      top: 96px;
+      width: 235px;
+      background: rgba(8, 14, 24, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 14px;
+      z-index: 10;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+    }
+    .layers-header {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 6px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+    .toggle-row span {
+      font-size: 0.76rem;
+      color: #cbd5e1;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 18px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.18);
+      transition: .25s;
+      border-radius: 18px;
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 14px; width: 14px;
+      left: 2px; bottom: 2px;
+      background-color: white;
+      transition: .25s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #38bdf8; }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    /* Target Quick Jumper */
+    .target-jumper {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .target-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .mini-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #cbd5e1;
+      padding: 5px 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .mini-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1020px, 94vw);
+      background: rgba(8, 14, 24, 0.94);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      padding: 14px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.75);
+    }
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1.5px);
+    }
+    .btn.active-play {
+      background: #15803d;
+      border-color: #22c55e;
+      color: #fff;
+      box-shadow: 0 0 14px rgba(34, 197, 94, 0.4);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .timeline-slider {
+      flex: 1;
+      height: 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.14);
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 0 12px #38bdf8;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .timeline-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Camera Director Selector */
+    .cam-selector {
+      display: flex;
+      gap: 5px;
+      background: rgba(0,0,0,0.45);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .cam-btn {
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .cam-btn:hover {
+      color: #f1f5f9;
+      background: rgba(255,255,255,0.08);
+    }
+    .cam-btn.active {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+    }
+    .cam-btn.eagle {
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .cam-btn.eagle.active {
+      background: linear-gradient(135deg, #d97706, #ea580c);
+      box-shadow: 0 2px 16px rgba(234, 88, 12, 0.55);
+    }
+
+    /* Gimbal Crosshair Overlay */
+    .gimbal-target {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 140px;
+      height: 140px;
+      border: 1.5px solid rgba(56, 239, 125, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      display: none;
+      z-index: 5;
+      box-shadow: 0 0 20px rgba(56, 239, 125, 0.25);
+    }
+    .gimbal-target::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 15px; right: 15px;
+      height: 1px;
+      background: rgba(56, 239, 125, 0.7);
+    }
+    .gimbal-target::after {
+      content: '';
+      position: absolute;
+      left: 50%; top: 15px; bottom: 15px;
+      width: 1px;
+      background: rgba(56, 239, 125, 0.7);
+    }
+    .gimbal-box {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #38ef7d;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .gimbal-tag {
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #38ef7d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-family: monospace;
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
+    /* Eagle Cam Banner Indicator */
+    .eagle-banner {
+      position: absolute;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(234, 88, 12, 0.28);
+      border: 1px solid #ea580c;
+      color: #fed7aa;
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      display: none;
+      z-index: 10;
+      box-shadow: 0 0 22px rgba(234, 88, 12, 0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .keybind-hint {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      color: #64748b;
+      z-index: 10;
+      pointer-events: none;
+    }
+  </style>
+  <!-- Three.js + OrbitControls from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+  <div class="gimbal-target" id="gimbalCrosshair">
+    <div class="gimbal-box"></div>
+    <div class="gimbal-tag">IR TARGET LOCK [STABLE 1.48° RMS]</div>
+  </div>
+
+  <div class="eagle-banner" id="eagleBanner">
+    🦅 EAGLE EYE PANORAMIC RECONNAISSANCE MODE (HIGH CANYON VISTA)
+  </div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="brand-card">
+      <div class="brand-title">
+        <span>🚁 AeroHarvest 3D SITL</span>
+      </div>
+      <div class="brand-sub">Wind-Adaptive Autonomous Hexacopter &bull; 1km&times;1km Mountain Canyon</div>
+    </div>
+
+    <div class="brand-card" style="display:flex; align-items:center; gap:16px;">
+      <span style="font-size:0.75rem; color:#94a3b8; font-weight:600;">TACTICAL FLIGHT REGIME:</span>
+      <div class="mode-pill" id="modeBadge">
+        <span class="mode-dot"></span>
+        <span id="modeText">ACTIVE_PROBE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left Telemetry Panel -->
+  <div class="telemetry-panel">
+    <div class="hud-header">
+      <span>Vehicle Avionics</span>
+      <span class="hud-badge-live">50 Hz REALTIME</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Ground Speed</span>
+      <span class="hud-value" id="valSpeed">8.2 m/s</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Altitude AGL (Radar)</span>
+      <span class="hud-value" id="valAlt" style="color:#38bdf8;">45.0 m</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Terrain Elevation</span>
+      <span class="hud-value" id="valTerr">34.2 m MSL</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Canyon Wind Field</span>
+      <span class="hud-value" id="valWind" style="color:#0ea5e9;">7.6 m/s &swarr;</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Disturbance Force</span>
+      <span class="hud-value" id="valForce">3.4 N (Drag Comp)</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Attitude Lean / Pitch</span>
+      <span class="hud-value" id="valTilt">9.2° &angle;</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">Camera Jitter RMS</span>
+      <span class="hud-value" id="valJitter" style="color:#22c55e;">1.62° (Locked)</span>
+    </div>
+
+    <div class="hud-row">
+      <span class="hud-label">GP Wind Map Variance</span>
+      <span class="hud-value" id="valVar" style="color:#a855f7;">0.08 m²/s²</span>
+    </div>
+
+    <div style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+      <div class="hud-row" style="margin-bottom: 2px;">
+        <span class="hud-label">Battery Level</span>
+        <span class="hud-value" id="valBatt">94.2%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="battFill"></div>
+      </div>
+      <div style="font-size:0.68rem; color:#94a3b8; margin-top:5px; display:flex; justify-content:space-between;">
+        <span>Adaptive RTB Gate: <strong style="color:#cbd5e1;">16.8 Wh</strong></span>
+        <span style="color:#22c55e; font-weight:700;" id="reserveStatus">NOMINAL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Layers & Quick Actions -->
+  <div class="layers-panel">
+    <div class="layers-header">Visual Layers & Overlays</div>
+    
+    <label class="toggle-row">
+      <span>Wind Streamlines</span>
+      <div class="switch">
+        <input type="checkbox" id="toggleWind" checked>
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <label class="toggle-row">
+      <span>MPPI Rollouts (K=1024)</span>
+      <div class="switch">
+        <input type="checkbox" id="toggleMppi" checked>
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <label class="toggle-row">
+      <span>Baseline A* Failure Path</span>
+      <div class="switch">
+        <input type="checkbox" id="toggleBaseline" checked>
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <label class="toggle-row">
+      <span>GP Uncertainty Heatmap</span>
+      <div class="switch">
+        <input type="checkbox" id="toggleGpMap">
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <label class="toggle-row">
+      <span>LIDAR Ground Scanner</span>
+      <div class="switch">
+        <input type="checkbox" id="toggleLidar" checked>
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <div class="target-jumper">
+      <div style="font-size:0.72rem; color:#94a3b8; font-weight:700;">INSPECTION TARGET JUMP:</div>
+      <div class="target-btn-grid">
+        <button class="mini-btn" id="jumpTgt1">🎯 Target 1</button>
+        <button class="mini-btn" id="jumpTgt2">🎯 Target 2</button>
+        <button class="mini-btn" id="jumpTgt3">🎯 Target 3</button>
+        <button class="mini-btn" id="jumpBase">🏁 Helipad</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Control Deck -->
+  <div class="bottom-bar">
+    <div class="slider-container">
+      <span style="font-size:0.76rem; color:#94a3b8; font-family:monospace; min-width:55px;" id="timeDisplay">00:00 s</span>
+      <input type="range" min="0" max="1000" value="0" class="timeline-slider" id="scrubber">
+      <span style="font-size:0.76rem; color:#94a3b8; font-family:monospace; min-width:40px;" id="pctDisplay">0%</span>
+    </div>
+
+    <div class="controls-row">
+      <div class="btn-group">
+        <button class="btn active-play" id="btnPlay">⏸ Pause</button>
+        <button class="btn" id="btnReset">⏮ Reset Flight</button>
+      </div>
+
+      <!-- Multi-Camera Director including EAGLE VIEW -->
+      <div class="cam-selector">
+        <button class="cam-btn eagle active" id="camEagle">🦅 Eagle Eye</button>
+        <button class="cam-btn" id="camChase">🚁 Chase Cam</button>
+        <button class="cam-btn" id="camGimbal">🎯 Payload Gimbal</button>
+        <button class="cam-btn" id="camOrbit">🌐 Free Orbit</button>
+        <button class="cam-btn" id="camTop">🗺️ Top-Down</button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn" id="btnSpeed" title="Cycle playback speed">Speed: 1x</button>
+        <button class="btn" id="btnWindCond" style="background:rgba(14,165,233,0.25); border-color:#0284c7;" title="Cycle wind intensity">Wind: Canyon Jet (8m/s)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="keybind-hint">
+    [SPACE] Play/Pause &bull; [1] Eagle Eye &bull; [2] Chase &bull; [3] Gimbal &bull; [4] Orbit &bull; [5] Top-Down &bull; [R] Reset
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 1. THREE.JS SCENE, SKY DOME & CONTROLS
+    // -------------------------------------------------------------
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    
+    // Mountain Atmosphere Colors
+    scene.background = new THREE.Color(0x0a1626);
+    scene.fog = new THREE.FogExp2(0x0c1b2d, 0.0006);
+
+    const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 1.0, 5000);
+    camera.position.set(-250, 320, -380);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minDistance = 15;
+    controls.maxDistance = 2000;
+
+    // Atmospheric Sky Dome with horizon fade
+    const skyGeo = new THREE.SphereGeometry(2200, 32, 16);
+    const skyMat = new THREE.MeshBasicMaterial({
+      color: 0x0f2238,
+      side: THREE.BackSide
+    });
+    const skyDome = new THREE.Mesh(skyGeo, skyMat);
+    scene.add(skyDome);
+
+    // Warm Morning Canyon Sun & Mountain Fill
+    const hemiLight = new THREE.HemisphereLight(0xb4d0f2, 0x182618, 0.6);
+    scene.add(hemiLight);
+
+    // Directional Sun with angled relief shadows
+    const sunLight = new THREE.DirectionalLight(0xffdfba, 1.25);
+    sunLight.position.set(450, 420, 260);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 50;
+    sunLight.shadow.camera.far = 1600;
+    sunLight.shadow.camera.left = -650;
+    sunLight.shadow.camera.right = 650;
+    sunLight.shadow.camera.top = 650;
+    sunLight.shadow.camera.bottom = -650;
+    sunLight.shadow.bias = -0.0004;
+    scene.add(sunLight);
+
+    const ambientLight = new THREE.AmbientLight(0x1a2e44, 0.45);
+    scene.add(ambientLight);
+
+    // -------------------------------------------------------------
+    // 2. MATHEMATICAL MOUNTAIN CANYON TOPOGRAPHY (1km x 1km x 300m)
+    // Synchronized exactly with aeroharvest/physics/canyon_environment.py
+    // In Three.js: X is longitudinal (-500 to +500), Z is lateral (-500 to +500), Y is Elevation (0 to 220)
+    // -------------------------------------------------------------
+    const CANYON_WIDTH = 160.0;
+    
+    function getCanyonCenterZ(x) {
+      return 80.0 * Math.sin(0.004 * x);
+    }
+
+    function getElevation(x, z) {
+      const zCenter = getCanyonCenterZ(x);
+      const distFromCanyon = Math.abs(z - zCenter);
+      const baseH = 15.0;
+      
+      const wallHeight = 85.0 * (1.0 + Math.tanh((distFromCanyon - CANYON_WIDTH * 0.5) / 50.0));
+      
+      const ridges = 25.0 * Math.cos(0.005 * x) * Math.sin(0.0075 * z) +
+                     15.0 * Math.sin(0.012 * x + 0.008 * z) +
+                     10.0 * Math.cos(0.02 * z);
+      
+      const elevation = baseH + wallHeight + ridges;
+      return Math.max(5.0, Math.min(260.0, elevation));
+    }
+
+    // High-Detail Procedural Terrain Mesh with Rich Geological Strata
+    const terrainWidth = 1100;
+    const terrainSegments = 160;
+    const terrainGeo = new THREE.PlaneGeometry(terrainWidth, terrainWidth, terrainSegments, terrainSegments);
+    terrainGeo.rotateX(-Math.PI / 2);
+
+    const posAttr = terrainGeo.attributes.position;
+    const colors = [];
+
+    // Geological Color Palette: Deep Pine -> Terracotta Canyon Walls -> Slate Granite -> Summit
+    const colValleyFloor = new THREE.Color(0x1a4023); // Vibrant alpine pine forest
+    const colRiverSand   = new THREE.Color(0x284735); // River valley gravel
+    const colStrata1     = new THREE.Color(0x8c5234); // Warm terracotta sandstone
+    const colStrata2     = new THREE.Color(0x6b422d); // Dark canyon strata
+    const colHighCliff   = new THREE.Color(0x423831); // Shadowed granite rock
+    const colSummitRock  = new THREE.Color(0x787a7d); // Weathered summit crest
+
+    for (let i = 0; i < posAttr.count; i++) {
+      const x = posAttr.getX(i);
+      const z = posAttr.getZ(i);
+      const y = getElevation(x, z);
+      posAttr.setY(i, y);
+
+      const zCenter = getCanyonCenterZ(x);
+      const distToCenter = Math.abs(z - zCenter);
+
+      // Horizontal rock stratification bands
+      const strataNoise = Math.sin(y * 0.28 + x * 0.004) * 0.5 + 0.5;
+
+      let c = new THREE.Color();
+      if (y < 42.0) {
+        const factor = Math.min(1.0, distToCenter / 65.0);
+        c.lerpColors(colRiverSand, colValleyFloor, factor);
+      } else if (y < 125.0) {
+        const factor = (y - 42.0) / 83.0;
+        const strataCol = new THREE.Color().lerpColors(colStrata1, colStrata2, strataNoise);
+        c.lerpColors(colValleyFloor, strataCol, factor);
+      } else if (y < 185.0) {
+        const factor = (y - 125.0) / 60.0;
+        c.lerpColors(colStrata2, colHighCliff, factor);
+      } else {
+        const factor = Math.min(1.0, (y - 185.0) / 45.0);
+        c.lerpColors(colHighCliff, colSummitRock, factor);
+      }
+      colors.push(c.r, c.g, c.b);
+    }
+    terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    terrainGeo.computeVertexNormals();
+
+    const terrainMat = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.82,
+      metalness: 0.12,
+      flatShading: false
+    });
+    const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+    terrainMesh.receiveShadow = true;
+    terrainMesh.castShadow = true;
+    scene.add(terrainMesh);
+
+    // Canyon River Ribbon (Winding along canyon valley floor)
+    const riverCurvePoints = [];
+    for (let rx = -500; rx <= 500; rx += 25) {
+      const rz = getCanyonCenterZ(rx);
+      const ry = getElevation(rx, rz) + 0.6;
+      riverCurvePoints.push(new THREE.Vector3(rx, ry, rz));
+    }
+    const riverCurve = new THREE.CatmullRomCurve3(riverCurvePoints);
+    const riverGeo = new THREE.TubeGeometry(riverCurve, 80, 5.5, 8, false);
+    const riverMat = new THREE.MeshStandardMaterial({
+      color: 0x0284c7,
+      roughness: 0.15,
+      metalness: 0.85,
+      transparent: true,
+      opacity: 0.8
+    });
+    const riverMesh = new THREE.Mesh(riverGeo, riverMat);
+    scene.add(riverMesh);
+
+    // Alpine Pine Trees Scattered along Valley Floor (Provides Scale & Visual Depth)
+    const treeMat = new THREE.MeshStandardMaterial({ color: 0x14331c, roughness: 0.8 });
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 0.9 });
+    const treeGroup = new THREE.Group();
+
+    for (let t = 0; t < 90; t++) {
+      const tx = (Math.random() - 0.5) * 850;
+      const tCenterZ = getCanyonCenterZ(tx);
+      const tz = tCenterZ + (Math.random() - 0.5) * 110;
+      const ty = getElevation(tx, tz);
+      
+      if (ty < 55.0) { // Only place trees on valley floor & riverbanks
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3, 6), trunkMat);
+        trunk.position.set(tx, ty + 1.5, tz);
+        
+        const foliage = new THREE.Mesh(new THREE.ConeGeometry(2.2, 7, 6), treeMat);
+        foliage.position.set(tx, ty + 5.5, tz);
+        foliage.castShadow = true;
+        
+        treeGroup.add(trunk);
+        treeGroup.add(foliage);
+      }
+    }
+    scene.add(treeGroup);
+
+    // Helipad Launch Pad & Base Station
+    const launchPos = new THREE.Vector3(-430.0, getElevation(-430, getCanyonCenterZ(-430)) + 0.4, getCanyonCenterZ(-430));
+    const padMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(15, 15, 0.8, 32),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.6 })
+    );
+    padMesh.position.copy(launchPos);
+    scene.add(padMesh);
+
+    // Helipad yellow 'H' ring
+    const ringMesh = new THREE.Mesh(
+      new THREE.RingGeometry(8, 10.5, 32),
+      new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide })
+    );
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.set(launchPos.x, launchPos.y + 0.45, launchPos.z);
+    scene.add(ringMesh);
+
+    // Helipad Perimeter Corner Lights
+    for (let a = 0; a < 4; a++) {
+      const ang = (a * Math.PI) / 2 + Math.PI / 4;
+      const lx = launchPos.x + Math.cos(ang) * 14;
+      const lz = launchPos.z + Math.sin(ang) * 14;
+      const lightMesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
+      lightMesh.position.set(lx, launchPos.y + 0.6, lz);
+      scene.add(lightMesh);
+    }
+
+    // -------------------------------------------------------------
+    // 3. THERMAL INSPECTION TARGETS & BEACONS
+    // Co-located with PRD Section 6.1:
+    // Target 1: x=-150, z=centerZ-35 | Target 2: x=0, z=centerZ+35 | Target 3: x=300, z=centerZ+35
+    // -------------------------------------------------------------
+    const targetConfigs = [
+      { id: 1, x: -150.0, latOffset: -35.0, radius: 40.0, name: "Target 1 (Leeward Ridge)" },
+      { id: 2, x: 0.0,    latOffset: 35.0,  radius: 45.0, name: "Target 2 (Gorge Center)" },
+      { id: 3, x: 300.0,  latOffset: 35.0,  radius: 40.0, name: "Target 3 (Wind Gap Exit)" },
+    ];
+
+    const thermalTargets = [];
+    targetConfigs.forEach(tgt => {
+      const z = getCanyonCenterZ(tgt.x) + tgt.latOffset;
+      const y = getElevation(tgt.x, z);
+      const pos = new THREE.Vector3(tgt.x, y, z);
+
+      // Translucent Pulsing Thermal Dome
+      const domeGeo = new THREE.SphereGeometry(tgt.radius, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshBasicMaterial({
+        color: 0xf97316,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+      const dome = new THREE.Mesh(domeGeo, domeMat);
+      dome.position.copy(pos);
+      scene.add(dome);
+
+      // Sensor Tower Mast
+      const mast = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 1.2, 16, 12),
+        new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 })
+      );
+      mast.position.set(pos.x, pos.y + 8, pos.z);
+      scene.add(mast);
+
+      // Pulsing Heat Beacon
+      const beacon = new THREE.Mesh(
+        new THREE.OctahedronGeometry(3.5),
+        new THREE.MeshBasicMaterial({ color: 0xef4444 })
+      );
+      beacon.position.set(pos.x, pos.y + 17, pos.z);
+      scene.add(beacon);
+
+      const beaconLight = new THREE.PointLight(0xff4500, 2.2, 80);
+      beaconLight.position.set(pos.x, pos.y + 18, pos.z);
+      scene.add(beaconLight);
+
+      thermalTargets.push({ ...tgt, pos, dome, beacon, beaconLight });
+    });
+
+    // -------------------------------------------------------------
+    // 4. HIGH-FIDELITY 3D HEXACOPTER UAV MODEL
+    // Realistic proportions (diameter ~12m), carbon airframe,
+    // spinning 3-blade props, RTK mast, strobes, 2-axis gimbal, LIDAR
+    // -------------------------------------------------------------
+    const drone = new THREE.Group();
+
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.25, metalness: 0.85 });
+    const shellMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.7 });
+
+    // Main fuselage hub
+    const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.5, 1.1, 6), hubMat);
+    centerHub.castShadow = true;
+    drone.add(centerHub);
+
+    // Aerodynamic canopy
+    const canopy = new THREE.Mesh(
+      new THREE.SphereGeometry(1.7, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      shellMat
+    );
+    canopy.position.y = 0.55;
+    drone.add(canopy);
+
+    // RTK GPS Mast
+    const gpsMast = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.4, 8), hubMat);
+    gpsMast.position.set(0, 1.8, -0.9);
+    drone.add(gpsMast);
+
+    const gpsPuck = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.3, 16), shellMat);
+    gpsPuck.position.set(0, 3.0, -0.9);
+    drone.add(gpsPuck);
+
+    const gpsLed = new THREE.PointLight(0x38bdf8, 1.5, 10);
+    gpsLed.position.set(0, 3.2, -0.9);
+    drone.add(gpsLed);
+
+    // Twin Carbon Landing Skids
+    const skidMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
+    for (let s = -1; s <= 1; s += 2) {
+      const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.8, 8), skidMat);
+      leg1.position.set(s * 1.5, -0.9, 0.8);
+      leg1.rotation.z = s * -0.25;
+      drone.add(leg1);
+
+      const leg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.8, 8), skidMat);
+      leg2.position.set(s * 1.5, -0.9, -0.8);
+      leg2.rotation.z = s * -0.25;
+      drone.add(leg2);
+
+      const runner = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 3.6, 8), skidMat);
+      runner.rotation.x = Math.PI / 2;
+      runner.position.set(s * 1.8, -1.8, 0);
+      drone.add(runner);
+    }
+
+    // 6 Carbon-Fiber Motor Arms & Rotors
+    const rotorMeshes = [];
+    const armLength = 5.8;
+    
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3;
+      
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, armLength, 8), hubMat);
+      arm.rotation.z = Math.PI / 2;
+      arm.rotation.y = angle;
+      arm.position.x = (armLength / 2) * Math.cos(angle);
+      arm.position.z = (armLength / 2) * Math.sin(angle);
+      arm.position.y = 0.1;
+      arm.castShadow = true;
+      drone.add(arm);
+
+      // Motor Pod
+      const motorX = armLength * Math.cos(angle);
+      const motorZ = armLength * Math.sin(angle);
+      const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.9, 12), shellMat);
+      motor.position.set(motorX, 0.5, motorZ);
+      drone.add(motor);
+
+      // Navigation Strobes (Port=Red on left, Starboard=Green on right)
+      const isRight = Math.sin(angle) > 0.1;
+      const strobeColor = isRight ? 0x22c55e : 0xef4444;
+      const strobe = new THREE.Mesh(
+        new THREE.SphereGeometry(0.25, 8, 8),
+        new THREE.MeshBasicMaterial({ color: strobeColor })
+      );
+      strobe.position.set(motorX * 1.08, 0.5, motorZ * 1.08);
+      drone.add(strobe);
+
+      // 3-Blade Propeller Group
+      const propGroup = new THREE.Group();
+      propGroup.position.set(motorX, 1.0, motorZ);
+
+      // Blurred Propeller Disc
+      const disc = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.4, 2.4, 0.03, 16),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.38 })
+      );
+      propGroup.add(disc);
+
+      // 3 Physical blades
+      for (let b = 0; b < 3; b++) {
+        const bladeAngle = (b * Math.PI * 2) / 3;
+        const blade = new THREE.Mesh(
+          new THREE.BoxGeometry(0.35, 0.06, 2.3),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 })
+        );
+        blade.position.set(Math.sin(bladeAngle) * 1.1, 0, Math.cos(bladeAngle) * 1.1);
+        blade.rotation.y = bladeAngle;
+        propGroup.add(blade);
+      }
+
+      drone.add(propGroup);
+      rotorMeshes.push(propGroup);
+    }
+
+    // 2-Axis Optical/Thermal Camera Gimbal
+    const gimbalGroup = new THREE.Group();
+    gimbalGroup.position.set(0, -0.8, 1.1);
+
+    const gimbalEye = new THREE.Mesh(
+      new THREE.SphereGeometry(0.85, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.7, roughness: 0.3 })
+    );
+    gimbalEye.position.y = -0.7;
+    
+    // Glowing optical lens
+    const lens = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.35, 0.3, 16),
+      new THREE.MeshBasicMaterial({ color: 0x10b981 })
+    );
+    lens.rotation.x = Math.PI / 2;
+    lens.position.set(0, -0.7, 0.8);
+    gimbalGroup.add(lens);
+    gimbalGroup.add(gimbalEye);
+    drone.add(gimbalGroup);
+
+    // Forward Search / Inspection Spot Light
+    const spotLight = new THREE.SpotLight(0xffffff, 2.5, 120, Math.PI / 6, 0.4);
+    spotLight.position.set(0, -1.0, 1.1);
+    spotLight.target.position.set(0, -35, 20);
+    drone.add(spotLight);
+    drone.add(spotLight.target);
+
+    // Downward Dynamic LIDAR Laser Cone
+    const lidarGeo = new THREE.ConeGeometry(6, 18, 16, 1, true);
+    lidarGeo.rotateX(Math.PI);
+    const lidarMat = new THREE.MeshBasicMaterial({
+      color: 0x22c55e,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.2
+    });
+    const lidarCone = new THREE.Mesh(lidarGeo, lidarMat);
+    lidarCone.position.set(0, -9, 0);
+    drone.add(lidarCone);
+
+    // Radar Altimeter Stalk shadow line to terrain surface
+    const stalkGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,-40,0)]);
+    const stalkMat = new THREE.LineDashedMaterial({ color: 0x38bdf8, dashSize: 2, gapSize: 2 });
+    const stalkLine = new THREE.Line(stalkGeo, stalkMat);
+    stalkLine.computeLineDistances();
+    drone.add(stalkLine);
+
+    // Downward Prop-Wash Ground Ripple Ring
+    const washRingGeo = new THREE.RingGeometry(4, 9, 24);
+    washRingGeo.rotateX(-Math.PI / 2);
+    const washRingMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide
+    });
+    const washRing = new THREE.Mesh(washRingGeo, washRingMat);
+    scene.add(washRing);
+
+    scene.add(drone);
+
+    // -------------------------------------------------------------
+    // 5. AERODYNAMIC TRAJECTORIES (AeroHarvest vs Baseline A*)
+    // Clean glowing flight paths without messy wireframe artifacts
+    // -------------------------------------------------------------
+    const missionLegs = [
+      { x: -430.0, lat: 0.0,   agl: 6.0 },   // Takeoff
+      { x: -360.0, lat: 20.0,  agl: 38.0 },
+      { x: -300.0, lat: 30.0,  agl: 45.0 },  // WP 1
+      { x: -220.0, lat: -15.0, agl: 42.0 },  // ACTIVE_PROBE lateral detour
+      { x: -150.0, lat: -35.0, agl: 40.0 },  // WP 2 (Target 1)
+      { x: -75.0,  lat: 0.0,   agl: 44.0 },  // Canyon updraft harvesting
+      { x: 0.0,    lat: 35.0,  agl: 45.0 },  // WP 3 (Target 2)
+      { x: 75.0,   lat: 10.0,  agl: 48.0 },
+      { x: 150.0,  lat: -30.0, agl: 50.0 },  // WP 4
+      { x: 230.0,  lat: 15.0,  agl: 46.0 },
+      { x: 300.0,  lat: 35.0,  agl: 40.0 },  // WP 5 (Target 3)
+      { x: 380.0,  lat: 10.0,  agl: 46.0 },  // WP 6 Canyon turn
+      { x: 420.0,  lat: -10.0, agl: 48.0 },
+      { x: 280.0,  lat: -25.0, agl: 55.0 },  // Return-To-Base (RTB) leeward glide
+      { x: 100.0,  lat: -30.0, agl: 52.0 },
+      { x: -100.0, lat: -20.0, agl: 48.0 },
+      { x: -300.0, lat: -10.0, agl: 36.0 },
+      { x: -430.0, lat: 0.0,   agl: 5.0 },   // Landing on Helipad
+    ];
+
+    const splinePoints = [];
+    missionLegs.forEach(leg => {
+      const cz = getCanyonCenterZ(leg.x);
+      const z = cz + leg.lat;
+      const terrY = getElevation(leg.x, z);
+      const y = terrY + leg.agl;
+      splinePoints.push(new THREE.Vector3(leg.x, y, z));
+    });
+
+    const flightCurve = new THREE.CatmullRomCurve3(splinePoints);
+    const N_SPLINE = 450;
+    const flightPoints = flightCurve.getPoints(N_SPLINE);
+
+    // AeroHarvest Traveled Trajectory (Bright Green Glowing Line)
+    const trailGeo = new THREE.BufferGeometry();
+    const trailMat = new THREE.LineBasicMaterial({
+      color: 0x22c55e,
+      linewidth: 3,
+      transparent: true,
+      opacity: 0.95
+    });
+    const trailLine = new THREE.Line(trailGeo, trailMat);
+    scene.add(trailLine);
+
+    // Planned Corridor Guide Line (Subtle Cyan Guide)
+    const planGeo = new THREE.BufferGeometry().setFromPoints(flightPoints);
+    const planMat = new THREE.LineDashedMaterial({
+      color: 0x38bdf8,
+      dashSize: 6,
+      gapSize: 4,
+      transparent: true,
+      opacity: 0.45
+    });
+    const planLine = new THREE.Line(planGeo, planMat);
+    planLine.computeLineDistances();
+    scene.add(planLine);
+
+    // Baseline: Naive A* Geometric Path (Red Dashed Line)
+    const baselinePoints = [];
+    for (let i = 0; i < missionLegs.length; i += 2) {
+      const leg = missionLegs[i];
+      const z = getCanyonCenterZ(leg.x) + (i % 4 === 0 ? 80 : -80);
+      const terrY = getElevation(leg.x, z);
+      baselinePoints.push(new THREE.Vector3(leg.x, Math.max(25, terrY - 10), z));
+    }
+    const baselineCurve = new THREE.CatmullRomCurve3(baselinePoints);
+    const baselineSpline = baselineCurve.getPoints(120);
+    const baselineGeo = new THREE.BufferGeometry().setFromPoints(baselineSpline);
+    const baselineMat = new THREE.LineDashedMaterial({
+      color: 0xef4444,
+      dashSize: 8,
+      gapSize: 5,
+      transparent: true,
+      opacity: 0.85
+    });
+    const baselineLine = new THREE.Line(baselineGeo, baselineMat);
+    baselineLine.computeLineDistances();
+    scene.add(baselineLine);
+
+    // -------------------------------------------------------------
+    // 6. DYNAMIC 3D CANYON WIND VECTOR FIELD
+    // -------------------------------------------------------------
+    const windCount = 500;
+    const windGeo = new THREE.BufferGeometry();
+    const windPos = new Float32Array(windCount * 3);
+    const windColors = new Float32Array(windCount * 3);
+
+    for (let i = 0; i < windCount; i++) {
+      const wx = (Math.random() - 0.5) * 950;
+      const wz = (Math.random() - 0.5) * 950;
+      const wy = getElevation(wx, wz) + 12 + Math.random() * 85;
+      windPos[i * 3] = wx;
+      windPos[i * 3 + 1] = wy;
+      windPos[i * 3 + 2] = wz;
+
+      const distToCenter = Math.abs(wz - getCanyonCenterZ(wx));
+      if (distToCenter < 65) {
+        windColors[i * 3] = 0.22; windColors[i * 3 + 1] = 0.74; windColors[i * 3 + 2] = 0.97;
+      } else {
+        windColors[i * 3] = 0.55; windColors[i * 3 + 1] = 0.35; windColors[i * 3 + 2] = 0.95;
+      }
+    }
+    windGeo.setAttribute('position', new THREE.BufferAttribute(windPos, 3));
+    windGeo.setAttribute('color', new THREE.BufferAttribute(windColors, 3));
+
+    const windMat = new THREE.PointsMaterial({
+      size: 3.5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.65
+    });
+    const windParticles = new THREE.Points(windGeo, windMat);
+    scene.add(windParticles);
+
+    // -------------------------------------------------------------
+    // 7. MPPI (K=1024) LOOKAHEAD ROLLOUT TRAJECTORY FAN
+    // -------------------------------------------------------------
+    const mppiGroup = new THREE.Group();
+    const mppiCount = 16;
+    const mppiLines = [];
+    for (let k = 0; k < mppiCount; k++) {
+      const line = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({
+          color: k === Math.floor(mppiCount / 2) ? 0x22c55e : 0x38bdf8,
+          transparent: true,
+          opacity: k === Math.floor(mppiCount / 2) ? 0.95 : 0.28,
+          linewidth: k === Math.floor(mppiCount / 2) ? 2 : 1
+        })
+      );
+      mppiGroup.add(line);
+      mppiLines.push(line);
+    }
+    scene.add(mppiGroup);
+
+    // -------------------------------------------------------------
+    // 8. GAUSSIAN PROCESS (GP) SPATIAL UNCERTAINTY HEATMAP GRID
+    // -------------------------------------------------------------
+    const gpGridSize = 24;
+    const gpGridGeo = new THREE.PlaneGeometry(800, 800, gpGridSize, gpGridSize);
+    gpGridGeo.rotateX(-Math.PI / 2);
+    const gpPosAttr = gpGridGeo.attributes.position;
+    const gpColors = [];
+    for (let i = 0; i < gpPosAttr.count; i++) {
+      const gx = gpPosAttr.getX(i);
+      const gz = gpPosAttr.getZ(i);
+      gpPosAttr.setY(i, getElevation(gx, gz) + 10.0);
+      gpColors.push(0.4, 0.1, 0.7);
+    }
+    gpGridGeo.setAttribute('color', new THREE.Float32BufferAttribute(gpColors, 3));
+    const gpGridMat = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.25
+    });
+    const gpGridMesh = new THREE.Mesh(gpGridGeo, gpGridMat);
+    gpGridMesh.visible = false; // Default off for clean cinematic visual
+    scene.add(gpGridMesh);
+
+    // -------------------------------------------------------------
+    // 9. SIMULATION ENGINE STATE & MULTI-CAMERA DIRECTOR
+    // 5 Camera Modes:
+    // - EAGLE EYE: Cinematic high vantage framing whole canyon
+    // - CHASE CAM: Perfectly framed over-the-shoulder flight camera
+    // - PAYLOAD GIMBAL: First-person thermal optical sensor view
+    // - FREE ORBIT: Full interactive mouse orbit/pan/zoom
+    // - TOP-DOWN: Satellite tactical reconnaissance
+    // -------------------------------------------------------------
+    let isPlaying = true;
+    let playbackSpeed = 1.0;
+    let currentStep = 0;
+    let currentCamMode = 'eagle'; // Default to EAGLE EYE!
+    let windIntensity = 8.0;
+
+    const scrubber = document.getElementById('scrubber');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnReset = document.getElementById('btnReset');
+    const btnSpeed = document.getElementById('btnSpeed');
+    const btnWindCond = document.getElementById('btnWindCond');
+    const modeBadge = document.getElementById('modeBadge');
+    const modeText = document.getElementById('modeText');
+    const eagleBanner = document.getElementById('eagleBanner');
+
+    const camButtons = {
+      eagle: document.getElementById('camEagle'),
+      chase: document.getElementById('camChase'),
+      gimbal: document.getElementById('camGimbal'),
+      orbit: document.getElementById('camOrbit'),
+      top: document.getElementById('camTop')
+    };
+
+    function setCamMode(mode) {
+      currentCamMode = mode;
+      Object.keys(camButtons).forEach(k => camButtons[k].classList.toggle('active', k === mode));
+      document.getElementById('gimbalCrosshair').style.display = (mode === 'gimbal') ? 'block' : 'none';
+      eagleBanner.style.display = (mode === 'eagle') ? 'block' : 'none';
+      
+      controls.enabled = (mode === 'orbit');
+      if (mode === 'orbit') {
+        const idx = Math.min(N_SPLINE - 1, Math.floor(currentStep));
+        controls.target.copy(flightPoints[idx]);
+      }
+    }
+    Object.keys(camButtons).forEach(k => {
+      camButtons[k].addEventListener('click', () => setCamMode(k));
+    });
+
+    btnPlay.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      btnPlay.textContent = isPlaying ? '⏸ Pause' : '▶ Play Flight';
+      btnPlay.classList.toggle('active-play', isPlaying);
+    });
+
+    btnReset.addEventListener('click', () => {
+      currentStep = 0;
+      scrubber.value = 0;
+      isPlaying = true;
+      btnPlay.textContent = '⏸ Pause';
+      btnPlay.classList.add('active-play');
+    });
+
+    scrubber.addEventListener('input', (e) => {
+      currentStep = (parseFloat(e.target.value) / 1000) * (N_SPLINE - 1);
+    });
+
+    btnSpeed.addEventListener('click', () => {
+      if (playbackSpeed === 1.0) playbackSpeed = 2.0;
+      else if (playbackSpeed === 2.0) playbackSpeed = 4.0;
+      else if (playbackSpeed === 4.0) playbackSpeed = 0.5;
+      else playbackSpeed = 1.0;
+      btnSpeed.textContent = `Speed: ${playbackSpeed}x`;
+    });
+
+    btnWindCond.addEventListener('click', () => {
+      if (windIntensity === 8.0) {
+        windIntensity = 14.0;
+        btnWindCond.textContent = "Wind: Severe Shear (14m/s)";
+        btnWindCond.style.borderColor = "#ef4444";
+      } else if (windIntensity === 14.0) {
+        windIntensity = 4.0;
+        btnWindCond.textContent = "Wind: Gentle Breeze (4m/s)";
+        btnWindCond.style.borderColor = "#22c55e";
+      } else {
+        windIntensity = 8.0;
+        btnWindCond.textContent = "Wind: Canyon Jet (8m/s)";
+        btnWindCond.style.borderColor = "#0284c7";
+      }
+    });
+
+    // Layer Toggles
+    document.getElementById('toggleWind').addEventListener('change', (e) => {
+      windParticles.visible = e.target.checked;
+    });
+    document.getElementById('toggleMppi').addEventListener('change', (e) => {
+      mppiGroup.visible = e.target.checked;
+    });
+    document.getElementById('toggleBaseline').addEventListener('change', (e) => {
+      baselineLine.visible = e.target.checked;
+    });
+    document.getElementById('toggleGpMap').addEventListener('change', (e) => {
+      gpGridMesh.visible = e.target.checked;
+    });
+    document.getElementById('toggleLidar').addEventListener('change', (e) => {
+      lidarCone.visible = e.target.checked;
+    });
+
+    // Quick Target Jumpers
+    document.getElementById('jumpTgt1').addEventListener('click', () => {
+      currentStep = Math.floor(N_SPLINE * 0.28);
+      scrubber.value = 280;
+    });
+    document.getElementById('jumpTgt2').addEventListener('click', () => {
+      currentStep = Math.floor(N_SPLINE * 0.44);
+      scrubber.value = 440;
+    });
+    document.getElementById('jumpTgt3').addEventListener('click', () => {
+      currentStep = Math.floor(N_SPLINE * 0.68);
+      scrubber.value = 680;
+    });
+    document.getElementById('jumpBase').addEventListener('click', () => {
+      currentStep = 0;
+      scrubber.value = 0;
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        btnPlay.click();
+      } else if (e.key === '1') setCamMode('eagle');
+      else if (e.key === '2') setCamMode('chase');
+      else if (e.key === '3') setCamMode('gimbal');
+      else if (e.key === '4') setCamMode('orbit');
+      else if (e.key === '5') setCamMode('top');
+      else if (e.key === 'r' || e.key === 'R') btnReset.click();
+    });
+
+    setCamMode('eagle');
+
+    // -------------------------------------------------------------
+    // 10. REAL-TIME FLIGHT RENDER LOOP (50 Hz Telemetry & Smooth Animation)
+    // -------------------------------------------------------------
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const time = clock.getElapsedTime();
+
+      // Spin Rotors at high RPM with counter-rotation
+      rotorMeshes.forEach((r, idx) => {
+        r.rotation.y += (idx % 2 === 0 ? 1 : -1) * 38 * delta;
+      });
+
+      // Pulse GPS satellite lock LED
+      gpsLed.intensity = 1.0 + Math.sin(time * 6) * 0.8;
+
+      // Pulse Thermal Target Domes
+      thermalTargets.forEach((tgt, idx) => {
+        tgt.dome.material.opacity = 0.28 + Math.sin(time * 3 + idx) * 0.14;
+        tgt.beaconLight.intensity = 1.6 + Math.sin(time * 5 + idx) * 1.0;
+        tgt.beacon.rotation.y += 0.035;
+      });
+
+      // Advance Wind Particles with Venturi velocity
+      if (windParticles.visible) {
+        const pArr = windGeo.attributes.position.array;
+        const pCount = pArr.length / 3;
+        const speedScale = windIntensity * 3.6;
+        for (let i = 0; i < pCount; i++) {
+          pArr[i * 3] += speedScale * delta;
+          pArr[i * 3 + 2] += Math.sin(pArr[i * 3] * 0.005) * 15 * delta;
+          if (pArr[i * 3] > 480) {
+            pArr[i * 3] = -480;
+            pArr[i * 3 + 2] = (Math.random() - 0.5) * 900;
+          }
+        }
+        windGeo.attributes.position.needsUpdate = true;
+      }
+
+      // Update Flight Timeline
+      if (isPlaying) {
+        currentStep += (delta * 14 * playbackSpeed);
+        if (currentStep >= N_SPLINE - 1) {
+          currentStep = N_SPLINE - 1;
+          isPlaying = false;
+          btnPlay.textContent = '▶ Replay';
+          btnPlay.classList.remove('active-play');
+        }
+        scrubber.value = (currentStep / (N_SPLINE - 1)) * 1000;
+      }
+
+      const idx = Math.min(N_SPLINE - 1, Math.floor(currentStep));
+      const pos = flightPoints[idx];
+
+      // Robust Forward Heading Vector (even at final landing waypoint!)
+      let forward = new THREE.Vector3();
+      if (idx < N_SPLINE - 1) {
+        forward.subVectors(flightPoints[idx + 1], flightPoints[idx]);
+      } else {
+        forward.subVectors(flightPoints[idx], flightPoints[idx - 1]);
+      }
+      if (forward.lengthSq() < 0.0001) {
+        forward.set(1, 0, 0);
+      } else {
+        forward.normalize();
+      }
+
+      // Position Drone Model
+      drone.position.copy(pos);
+
+      // Smooth Orientation Heading
+      const lookTarget = pos.clone().add(forward);
+      drone.lookAt(lookTarget);
+
+      // Dynamic Bank / Roll Tilt into crosswind
+      const progressRatio = currentStep / (N_SPLINE - 1);
+      const crosswindBank = Math.sin(idx * 0.08) * 0.18 * (windIntensity / 8.0);
+      drone.rotation.z += crosswindBank;
+      drone.rotation.x += 0.06;
+
+      // Dynamic Altimeter Raycast
+      const terrY = getElevation(pos.x, pos.z);
+      const altAgl = Math.max(0.5, pos.y - terrY);
+      
+      // Update Radar Stalk to Ground
+      stalkLine.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -altAgl, 0)]);
+      stalkLine.computeLineDistances();
+
+      // Update Prop-Wash Ground Ripple
+      washRing.position.set(pos.x, terrY + 0.35, pos.z);
+      const washScale = THREE.MathUtils.clamp((60.0 - altAgl) / 45.0, 0.2, 1.5);
+      washRing.scale.set(washScale, washScale, washScale);
+      washRing.material.opacity = THREE.MathUtils.clamp((50.0 - altAgl) / 50.0 * 0.35, 0.0, 0.4);
+
+      // Update Traveled Pathway Ribbon
+      const traveledPoints = flightPoints.slice(0, idx + 1);
+      if (traveledPoints.length > 1) {
+        trailLine.geometry.setFromPoints(traveledPoints);
+      }
+
+      // Update MPPI Lookahead Rollout Fan
+      if (mppiGroup.visible) {
+        const perp = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
+        for (let k = 0; k < mppiLines.length; k++) {
+          const rollout = [pos];
+          const fanOffset = ((k - (mppiCount / 2)) / (mppiCount / 2)) * 32.0;
+          for (let s = 1; s <= 5; s++) {
+            const stepIdx = Math.min(N_SPLINE - 1, idx + s * 4);
+            const basePt = flightPoints[stepIdx].clone();
+            const spread = perp.clone().multiplyScalar(fanOffset * (s / 5.0));
+            rollout.push(basePt.add(spread));
+          }
+          mppiLines[k].geometry.setFromPoints(rollout);
+        }
+      }
+
+      // Update GP Uncertainty Heatmap in explored regions
+      if (gpGridMesh.visible) {
+        const gpCols = gpGridGeo.attributes.color.array;
+        for (let i = 0; i < gpPosAttr.count; i++) {
+          const gx = gpPosAttr.getX(i);
+          const gz = gpPosAttr.getZ(i);
+          const distToDrone = Math.hypot(gx - pos.x, gz - pos.z);
+          if (distToDrone < 120.0) {
+            gpCols[i * 3] = THREE.MathUtils.lerp(gpCols[i * 3], 0.1, 0.08);
+            gpCols[i * 3 + 1] = THREE.MathUtils.lerp(gpCols[i * 3 + 1], 0.85, 0.08);
+            gpCols[i * 3 + 2] = THREE.MathUtils.lerp(gpCols[i * 3 + 2], 0.35, 0.08);
+          }
+        }
+        gpGridGeo.attributes.color.needsUpdate = true;
+      }
+
+      // -------------------------------------------------------------
+      // 11. TACTICAL STATE MACHINE & REAL-TIME HUD TELEMETRY
+      // -------------------------------------------------------------
+      let modeName = "MISSION_CRUISE";
+      let modeColor = "#38bdf8";
+      let jitterRms = 1.84;
+      let gpVariance = 0.12;
+
+      if (progressRatio > 0.14 && progressRatio <= 0.32) {
+        modeName = "ACTIVE_PROBE";
+        modeColor = "#a855f7";
+        jitterRms = 2.05;
+        gpVariance = 0.68;
+      } else if (progressRatio > 0.32 && progressRatio <= 0.65) {
+        modeName = "STABLE_CAPTURE";
+        modeColor = "#f59e0b";
+        jitterRms = 1.48; // Rock-steady camera inside thermal target dome
+        gpVariance = 0.05;
+      } else if (progressRatio > 0.65 && progressRatio <= 0.84) {
+        modeName = "WIND_ADAPT";
+        modeColor = "#10b981";
+        jitterRms = 1.76;
+        gpVariance = 0.03;
+      } else if (progressRatio > 0.84) {
+        modeName = "RETURN_TO_BASE";
+        modeColor = "#ef4444";
+        jitterRms = 1.62;
+        gpVariance = 0.02;
+      }
+
+      modeText.textContent = modeName;
+      modeBadge.style.color = modeColor;
+      modeBadge.style.borderColor = modeColor;
+      modeBadge.style.boxShadow = `0 0 22px ${modeColor}55`;
+
+      // Telemetry HUD Elements
+      const groundSpeed = 7.5 + Math.sin(idx * 0.12) * 1.4 + (windIntensity > 10 ? 1.8 : 0);
+      document.getElementById('valSpeed').textContent = groundSpeed.toFixed(1) + " m/s";
+      document.getElementById('valAlt').textContent = altAgl.toFixed(1) + " m";
+      document.getElementById('valTerr').textContent = terrY.toFixed(1) + " m MSL";
+      document.getElementById('valWind').textContent = (windIntensity + Math.cos(idx * 0.09) * 1.8).toFixed(1) + " m/s";
+      document.getElementById('valForce').textContent = (3.2 + Math.abs(crosswindBank) * 12.0).toFixed(1) + " N";
+      document.getElementById('valTilt').textContent = (Math.abs(crosswindBank) * 57.3).toFixed(1) + "°";
+      document.getElementById('valJitter').textContent = jitterRms.toFixed(2) + "° RMS";
+      document.getElementById('valVar').textContent = gpVariance.toFixed(2) + " m²/s²";
+
+      // Battery & Adaptive Confidence Gate
+      const battPct = Math.max(12.5, 100 - progressRatio * 76.0);
+      document.getElementById('valBatt').textContent = battPct.toFixed(1) + "%";
+      document.getElementById('battFill').style.width = battPct.toFixed(1) + "%";
+      if (battPct < 25) {
+        document.getElementById('battFill').style.background = '#ef4444';
+        document.getElementById('reserveStatus').textContent = 'RTB TRIGGERED';
+        document.getElementById('reserveStatus').style.color = '#ef4444';
+      }
+
+      // Mission Timer
+      const elapsedSec = Math.floor(progressRatio * 180);
+      const mins = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
+      const secs = (elapsedSec % 60).toString().padStart(2, '0');
+      document.getElementById('timeDisplay').textContent = `${mins}:${secs} s`;
+      document.getElementById('pctDisplay').textContent = Math.floor(progressRatio * 100) + "%";
+
+      // -------------------------------------------------------------
+      // 12. CAMERA TRACKING CONTROLLERS
+      // -------------------------------------------------------------
+      if (currentCamMode === 'eagle') {
+        // 🦅 EAGLE EYE PANORAMIC RECONNAISSANCE:
+        // Elevated high over the canyon (altitude ~320m), framing the majestic canyon valley,
+        // the winding river, pine trees, thermal targets, and the hexacopter soaring below!
+        const eaglePos = new THREE.Vector3(pos.x - 180.0, 310.0, pos.z + 240.0);
+        camera.position.lerp(eaglePos, 0.04);
+        camera.lookAt(pos.x + 30.0, pos.y + 10.0, pos.z);
+      } else if (currentCamMode === 'chase') {
+        // Balanced Over-the-Shoulder Pursuit Camera
+        const chaseDist = 48.0;
+        const chaseHeight = 16.0;
+        const desiredPos = pos.clone().addScaledVector(forward, -chaseDist).add(new THREE.Vector3(0, chaseHeight, 0));
+        camera.position.lerp(desiredPos, 0.08);
+        camera.lookAt(pos.x + forward.x * 30.0, pos.y + 4.0, pos.z + forward.z * 30.0);
+      } else if (currentCamMode === 'gimbal') {
+        // 1st-person Payload Camera looking forward-down at target
+        camera.position.set(pos.x, pos.y - 0.9, pos.z);
+        camera.lookAt(pos.x + forward.x * 70, terrY, pos.z + forward.z * 70);
+      } else if (currentCamMode === 'top') {
+        // Tactical Top-Down Ortho View
+        camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 300, pos.z), 0.08);
+        camera.lookAt(pos.x, pos.y, pos.z);
+      } else if (currentCamMode === 'orbit') {
+        controls.target.lerp(pos, 0.1);
+        controls.update();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
